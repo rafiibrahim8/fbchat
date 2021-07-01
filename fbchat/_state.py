@@ -185,7 +185,10 @@ class State(object):
             fb_dtsg = fb_dtsg_element["value"]
         else:
             # Fall back to searching with a regex
-            fb_dtsg = FB_DTSG_REGEX.search(r.text).group(1)
+            try:
+                fb_dtsg = FB_DTSG_REGEX.search(r.text).group(1)
+            except:
+                fb_dtsg = re.compile('DTSGInitialData[^:]+([^}]+)').search(r.text).groups()[0][1:].strip('"')
 
         revision = int(r.text.split('"client_revision":', 1)[1].split(",", 1)[0])
 
