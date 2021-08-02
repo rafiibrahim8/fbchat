@@ -21,6 +21,7 @@ class Mqtt(object):
     _sync_token = attr.ib(None)
 
     _HOST = "edge-chat.facebook.com"
+    _will_reconnect = False
 
     @classmethod
     def connect(cls, state, on_message, chat_on, foreground):
@@ -272,6 +273,10 @@ class Mqtt(object):
 
         Returns whether to keep listening or not.
         """
+        
+        if self._will_reconnect:
+            self._reconnect_mqtt_impl()
+        
         rc = self._mqtt.loop(timeout=1.0)
 
         # If disconnect() has been called
@@ -295,22 +300,30 @@ class Mqtt(object):
                 if on_error:
                     on_error(_exception.FBchatException("MQTT Error {}".format(err)))
 
-            # Wait before reconnecting
-            self._mqtt._reconnect_wait()
-
             # Try reconnecting
-            self._configure_connect_options()
-            try:
-                self._mqtt.reconnect()
-            except (
-                # Taken from .loop_forever
-                paho.mqtt.client.socket.error,
-                OSError,
-                paho.mqtt.client.WebsocketConnectionError,
-            ) as e:
-                log.debug("MQTT reconnection failed: %s", e)
+            self._reconnect_mqtt_impl()
 
         return True  # Keep listening
+
+    def reconnect_mqtt(self):
+        self._will_reconnect = True
+
+    def _reconnect_mqtt_impl(self):
+        self._will_reconnect = False
+
+        # Wait before reconnecting
+        self._mqtt._reconnect_wait()
+
+        self._configure_connect_options()
+        try:
+            self._mqtt.reconnect()
+        except (
+            # Taken from .loop_forever
+            paho.mqtt.client.socket.error,
+            OSError,
+            paho.mqtt.client.WebsocketConnectionError,
+        ) as e:
+            log.debug("MQTT reconnection failed: %s", e)
 
     def disconnect(self):
         self._mqtt.disconnect()

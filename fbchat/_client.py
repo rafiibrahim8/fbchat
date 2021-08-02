@@ -15,6 +15,7 @@ from ._state import State
 from ._mqtt import Mqtt
 import time
 import json
+import threading
 
 try:
     from urllib.parse import urlparse, parse_qs
@@ -72,6 +73,7 @@ class Client(object):
         max_tries=5,
         session_cookies=None,
         logging_level=logging.INFO,
+        auto_reconnect_after = 0
     ):
         """Initialize and log in the client.
 
@@ -82,10 +84,13 @@ class Client(object):
             max_tries (int): Maximum number of times to try logging in
             session_cookies (dict): Cookies from a previous session (Will default to login if these are invalid)
             logging_level (int): Configures the `logging level <https://docs.python.org/3/library/logging.html#logging-levels>`_. Defaults to ``logging.INFO``
+            auto_reconnect_after (int): Reconnect MQTT lister if no message is received during this many minutes. Levae 0 of negative value for deactivate this behavior. Defaults to ``0``
 
         Raises:
             FBchatException: On failed login
         """
+
+        self._last_recv_message_timestamp = None
         self._default_thread_id = None
         self._default_thread_type = None
         self._markAlive = True
@@ -101,6 +106,19 @@ class Client(object):
             or not self.isLoggedIn()
         ):
             self.login(email, password, max_tries, user_agent=user_agent)
+
+        if auto_reconnect_after > 0:
+            auto_reconnect_thread = threading.Thread(target=self._auto_reconnect, args=(auto_reconnect_after * 60,))
+            auto_reconnect_thread.daemon = True
+            auto_reconnect_thread.start()
+
+    def _auto_reconnect(self, interval):
+        log.info(f'Running reconnect thread at interval of {interval}s')
+        while True:
+            time.sleep(60)
+            if (self._last_recv_message_timestamp != None) and ((time.time() - self._last_recv_message_timestamp) > interval):
+                log.info(f'Reconnecting MQTT after {interval}s')
+                self._mqtt.reconnect_mqtt()
 
     """
     INTERNAL REQUEST METHODS
@@ -2816,6 +2834,7 @@ class Client(object):
             self.onUnknownMesssageType(msg=m)
 
     def _parse_message(self, topic, data):
+        self._last_recv_message_timestamp = time.time()
         try:
             self._parse_payload(topic, data)
         except Exception as e:
