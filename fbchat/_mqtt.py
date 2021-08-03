@@ -21,7 +21,9 @@ class Mqtt(object):
     _sync_token = attr.ib(None)
 
     _HOST = "edge-chat.facebook.com"
-    _will_reconnect = False
+
+    def __init__(self):
+        self._will_reconnect = False
 
     @classmethod
     def connect(cls, state, on_message, chat_on, foreground):
