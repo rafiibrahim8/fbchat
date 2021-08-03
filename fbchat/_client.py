@@ -108,16 +108,17 @@ class Client(object):
             self.login(email, password, max_tries, user_agent=user_agent)
 
         if auto_reconnect_after > 0:
-            auto_reconnect_thread = threading.Thread(target=self._auto_reconnect, args=(auto_reconnect_after * 60,))
+            auto_reconnect_thread = threading.Thread(target=self._auto_reconnect, args=(auto_reconnect_after,))
             auto_reconnect_thread.daemon = True
             auto_reconnect_thread.start()
 
     def _auto_reconnect(self, interval):
-        log.info(f'Running reconnect thread at interval of {interval//60}min')
+        log.info(f'Running reconnect thread at interval of {interval} min.')
+        interval_secs = interval * 60.0
         while True:
-            time.sleep(60)
-            if (self._last_recv_message_timestamp != None) and ((time.time() - self._last_recv_message_timestamp) > interval):
-                log.info(f'Reconnecting MQTT after {interval//60}min')
+            time.sleep(interval_secs)
+            if (self._last_recv_message_timestamp != None) and ((time.time() - self._last_recv_message_timestamp) > interval_secs):
+                log.info(f'Reconnecting MQTT after {interval} min.')
                 self._mqtt.reconnect_mqtt()
 
     """
