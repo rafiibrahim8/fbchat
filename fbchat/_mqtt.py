@@ -19,11 +19,9 @@ class Mqtt(object):
     _foreground = attr.ib()
     _sequence_id = attr.ib()
     _sync_token = attr.ib(None)
+    _will_reconnect = attr.ib(False)
 
     _HOST = "edge-chat.facebook.com"
-
-    def __init__(self):
-        self._will_reconnect = False
 
     @classmethod
     def connect(cls, state, on_message, chat_on, foreground):
