@@ -113,13 +113,14 @@ class Client(object):
             auto_reconnect_thread.start()
 
     def _auto_reconnect(self, interval):
-        log.info(f'Running reconnect thread at interval of {interval} min.')
+        log.info(f'Running reconnect thread at interval of {interval} min...')
         interval_secs = interval * 60.0
         while True:
-            time.sleep(interval_secs)
+            time.sleep(60.0)
             if (self._last_recv_message_timestamp != None) and ((time.time() - self._last_recv_message_timestamp) > interval_secs):
-                log.info(f'Reconnecting MQTT after {interval} min.')
+                log.info(f'Reconnecting MQTT after {interval} min...')
                 self._mqtt.reconnect_mqtt()
+                self._last_recv_message_timestamp = time.time() # Preventing the loop from running each minute.
 
     """
     INTERNAL REQUEST METHODS
