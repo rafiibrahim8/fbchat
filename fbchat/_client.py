@@ -2774,6 +2774,7 @@ class Client(object):
         if topic == "/t_ms":
             if "deltas" not in m:
                 return
+            self._last_recv_message_timestamp = time.time()
             for delta in m["deltas"]:
                 self._parseDelta(delta)
 
@@ -2836,7 +2837,6 @@ class Client(object):
             self.onUnknownMesssageType(msg=m)
 
     def _parse_message(self, topic, data):
-        self._last_recv_message_timestamp = time.time()
         try:
             self._parse_payload(topic, data)
         except Exception as e:
