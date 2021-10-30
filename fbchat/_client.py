@@ -2635,7 +2635,7 @@ class Client(object):
                     mid = i["messageId"]
                     author_id = str(i["userId"])
                     reaction = (
-                        MessageReaction(i["reaction"]) if i.get("reaction") else None
+                        MessageReaction._extend_if_invalid(i["reaction"]) if i.get("reaction") else None
                     )
                     add_reaction = not bool(i["action"])
                     if add_reaction:

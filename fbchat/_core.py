@@ -20,7 +20,7 @@ class Enum(aenum.Enum):
             return cls(value)
         except ValueError:
             log.warning(
-                "Failed parsing {.__name__}({!r}). Extending enum.".format(cls, value)
+                "Warning: Failed parsing {.__name__}({!r}). Extending enum.".format(cls, value)
             )
             aenum.extend_enum(cls, "UNKNOWN_{}".format(value).upper(), value)
             return cls(value)
