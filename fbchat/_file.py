@@ -182,6 +182,8 @@ class VideoAttachment(Attachment):
     duration = attr.ib(None)
     #: URL to very compressed preview video
     preview_url = attr.ib(None)
+    #: Filename of the video
+    filename = attr.ib(None)
 
     #: URL to a small preview image of the video
     small_image_url = attr.ib(None)
@@ -214,6 +216,7 @@ class VideoAttachment(Attachment):
         small_image=None,
         medium_image=None,
         large_image=None,
+        filename=None,
         **kwargs
     ):
         super(VideoAttachment, self).__init__(**kwargs)
@@ -222,6 +225,7 @@ class VideoAttachment(Attachment):
         self.height = height
         self.duration = duration
         self.preview_url = preview_url
+        self.filename = filename
 
         if small_image is None:
             small_image = {}
@@ -252,6 +256,7 @@ class VideoAttachment(Attachment):
             medium_image=data.get("inbox_image"),
             large_image=data.get("large_image"),
             uid=data.get("legacy_attachment_id"),
+            filename=data["filename"],
         )
 
     @classmethod
@@ -262,6 +267,7 @@ class VideoAttachment(Attachment):
             preview_url=media.get("playable_url"),
             medium_image=media.get("image"),
             uid=data["target"].get("video_id"),
+            filename=data["filename"],
         )
 
     @classmethod
@@ -274,6 +280,7 @@ class VideoAttachment(Attachment):
             medium_image=data["image1"],
             large_image=data["image2"],
             uid=data["legacy_attachment_id"],
+            filename=data["filename"],
         )
 
 
